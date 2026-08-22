@@ -4,6 +4,8 @@ import { Footer } from "@/components/public/footer";
 import { CommandPalette } from "@/components/providers/command-palette";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export default async function PublicLayout({
   children,
 }: {
