@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #090B0F;
+    --surface: #10141A;
+    --surface-secondary: #151A21;
+    --primary: #39FF88;
+    --primary-hover: #2ee677;
+    --primary-glow: rgba(57, 255, 136, 0.25);
+    --secondary: #00D9FF;
+    --secondary-glow: rgba(0, 217, 255, 0.25);
+    --text: #E8EDF2;
+    --muted: #7D8996;
+    --border: #26313A;
+    --radius: 6px;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  .light {
+    --background: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-secondary: #EBF0F5;
+    --primary: #059669;
+    --primary-hover: #047857;
+    --primary-glow: rgba(5, 150, 105, 0.2);
+    --secondary: #0284C7;
+    --secondary-glow: rgba(2, 132, 199, 0.2);
+    --text: #0F172A;
+    --muted: #475569;
+    --border: #CBD5E1;
+    --radius: 6px;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+    selection-background-color: var(--primary);
+    selection-color: #000000;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: #05080c;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Subtle Cybersecurity Matrix/Grid Background */
+.cyber-grid {
+  background-image: linear-gradient(to right, rgba(38, 49, 58, 0.3) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(38, 49, 58, 0.3) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.cyber-dots {
+  background-image: radial-gradient(rgba(38, 49, 58, 0.6) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Glow & Accent utilities */
+.glow-primary {
+  box-shadow: 0 0 20px -5px var(--primary-glow);
+}
+
+.glow-secondary {
+  box-shadow: 0 0 20px -5px var(--secondary-glow);
+}
+
+.border-glow {
+  border-color: var(--primary);
+  box-shadow: 0 0 10px -2px var(--primary-glow);
+}
+
+/* Prism / Code Syntax Highlighting Styling */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #E8EDF2;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  tab-size: 2;
+  hyphens: none;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #5c6977;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #8c9ba8;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #FF7B72;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #7EE787;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #79C0FF;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #FF7B72;
+  font-weight: 500;
+}
+
+.token.function,
+.token.class-name {
+  color: #D2A8FF;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #FFA657;
+}

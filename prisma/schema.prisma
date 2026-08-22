@@ -1,0 +1,241 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String   @default("wwww82")
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Profile {
+  id          String   @id @default("default")
+  name        String   @default("wwww82")
+  title       String   @default("Cybersecurity Researcher")
+  bio         String   @default("Cybersecurity enthusiast focused on security research, web security, penetration testing, and technical exploration.")
+  location    String   @default("Bangkok, Thailand")
+  email       String   @default("contact@wwww82.sec")
+  github      String   @default("https://github.com/wwww82")
+  linkedin    String   @default("https://linkedin.com/in/wwww82")
+  twitter     String   @default("https://x.com/wwww82_sec")
+  pgpKey      String   @default("-----BEGIN PGP PUBLIC KEY BLOCK-----\nVersion: OpenPGP.js v4.10.10\n...\n-----END PGP PUBLIC KEY BLOCK-----")
+  avatarUrl   String?
+  resumeUrl   String?
+  philosophy  String?
+  focusAreas  String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Project {
+  id                          String            @id @default(cuid())
+  title                       String
+  slug                        String            @unique
+  category                    String            @default("Web Security")
+  tags                        String            @default("[]") // JSON Array
+  description                 String
+  coverImage                  String?
+  year                        String            @default("2026")
+  role                        String            @default("Security Lead / Researcher")
+  duration                    String            @default("3 Months")
+  tools                       String            @default("[]") // JSON Array
+  technologies                String            @default("[]") // JSON Array
+  featured                    Boolean           @default(false)
+  order                       Int               @default(0)
+  status                      String            @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  // Case Study Sections
+  caseStudyOverview           String?
+  caseStudyProblem            String?
+  caseStudyObjective          String?
+  caseStudyApproach           String?
+  caseStudyArchitecture       String?
+  caseStudyImplementation     String?
+  caseStudySecurityAnalysis   String?
+  caseStudyResult             String?
+  caseStudyLessons            String?
+  // SEO
+  seoTitle                    String?
+  seoDescription              String?
+  ogImage                     String?
+  findings                    SecurityFinding[]
+  createdAt                   DateTime          @default(now())
+  updatedAt                   DateTime          @updatedAt
+}
+
+model SecurityFinding {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title          String
+  severity       String   @default("HIGH") // CRITICAL, HIGH, MEDIUM, LOW, INFORMATIONAL
+  impact         String
+  recommendation String
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model WriteUp {
+  id           String         @id @default(cuid())
+  title        String
+  slug         String         @unique
+  excerpt      String
+  coverImage   String?
+  category     String         @default("Web Security")
+  tags         String         @default("[]") // JSON Array
+  difficulty   String         @default("Intermediate") // Beginner, Intermediate, Advanced, Expert
+  readingTime  String         @default("8 min read")
+  featured     Boolean        @default(false)
+  order        Int            @default(0)
+  status       String         @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  publishedAt  DateTime?      @default(now())
+  content      String         @default("[]") // JSON Array of WriteUpBlocks or Markdown
+  isMarkdown   Boolean        @default(false)
+  // SEO
+  seoTitle     String?
+  seoDescription String?
+  ogImage      String?
+  blocks       WriteUpBlock[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model WriteUpBlock {
+  id         String   @id @default(cuid())
+  writeUpId  String
+  writeUp    WriteUp  @relation(fields: [writeUpId], references: [id], onDelete: Cascade)
+  type       String   // heading, paragraph, code, terminal, finding, warning, image, table, list, quote, divider
+  order      Int      @default(0)
+  dataJson   String   // JSON block payload
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Revision {
+  id          String   @id @default(cuid())
+  entityType  String   // PROJECT, WRITEUP, PROFILE, APPEARANCE
+  entityId    String
+  title       String
+  contentJson String
+  createdAt   DateTime @default(now())
+}
+
+model Certification {
+  id             String    @id @default(cuid())
+  title          String
+  issuer         String
+  issueDate      String
+  expiryDate     String?
+  credentialId   String?
+  credentialUrl  String?
+  certificateImage String?
+  description    String?
+  order          Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Experience {
+  id          String    @id @default(cuid())
+  role        String
+  company     String
+  location    String?
+  startDate   String
+  endDate     String?
+  current     Boolean   @default(false)
+  description String
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String
+  category    String   @default("Security") // Security, Programming, Networking, Cloud, Tools, Other
+  proficiency Int      @default(90) // 1-100
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tool {
+  id          String   @id @default(cuid())
+  name        String
+  category    String   @default("Penetration Testing")
+  description String?
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  alt          String?
+  width        Int?
+  height       Int?
+  createdAt    DateTime @default(now())
+}
+
+model NavigationItem {
+  id         String   @id @default(cuid())
+  label      String
+  path       String
+  order      Int      @default(0)
+  isEnabled  Boolean  @default(true)
+  isExternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model HomepageSection {
+  id         String   @id @default(cuid())
+  sectionKey String   @unique // hero, stats, featured_projects, latest_writeups, certifications, skills, contact
+  title      String
+  subtitle   String?
+  isEnabled  Boolean  @default(true)
+  order      Int      @default(0)
+  configJson String   @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ThemeSetting {
+  id                   String   @id @default("default")
+  preset               String   @default("cyber-green")
+  primaryColor         String   @default("#39FF88")
+  secondaryColor       String   @default("#00D9FF")
+  backgroundColor      String   @default("#090B0F")
+  surfaceColor         String   @default("#10141A")
+  surfaceSecondaryColor String  @default("#151A21")
+  textColor            String   @default("#E8EDF2")
+  mutedColor           String   @default("#7D8996")
+  borderColor          String   @default("#26313A")
+  fontSans             String   @default("Inter")
+  fontMono             String   @default("JetBrains Mono")
+  borderRadius         String   @default("6px")
+  glowIntensity        String   @default("normal") // none, subtle, normal, intense
+  updatedAt            DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
