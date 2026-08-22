@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
         data: {
           entityType: "AUTH",
           entityId: user.id,
-          action: "LOGIN",
-          summary: `Admin authenticated successfully from IP: ${clientIp}`,
+          title: `Admin Login (${user.email})`,
+          contentJson: JSON.stringify({ ip: clientIp, userAgent: request.headers.get("user-agent") }),
         },
       });
     } catch {

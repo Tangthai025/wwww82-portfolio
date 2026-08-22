@@ -240,3 +240,5 @@ model SiteSetting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+
