@@ -3,14 +3,58 @@ import { db } from "@/lib/db";
 import { comparePassword, createSessionToken, setSessionCookie } from "@/lib/auth";
 import { LoginSchema } from "@/lib/validation";
 
+// In-memory rate limiting map for brute-force protection
+const loginAttempts = new Map<string, { count: number; lockedUntil: number }>();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+// Dummy hash for constant-time comparison against timing attacks
+const DUMMY_HASH = "$2a$12$e8Yk1.7Yk1.7Yk1.7Yk1.7uXh7kF2zI0hD2ZpB7uC8m1u6p2e4sWe";
+
+function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+  return "unknown-ip";
+}
+
 export async function POST(request: NextRequest) {
+  const clientIp = getClientIp(request);
+  const now = Date.now();
+
+  // 1. Check Rate Limit / Lockout
+  const attemptRecord = loginAttempts.get(clientIp);
+  if (attemptRecord && attemptRecord.lockedUntil > now) {
+    const remainingSec = Math.ceil((attemptRecord.lockedUntil - now) / 1000);
+    const remainingMin = Math.ceil(remainingSec / 60);
+    return NextResponse.json(
+      {
+        error: `Account access locked due to excessive failed attempts. Try again in ${remainingMin} minute(s).`,
+        isLocked: true,
+        remainingSeconds: remainingSec,
+      },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
+
+    // 2. Honeypot Bot Trap Check
+    if (body.botField || body.website) {
+      // Automated bot detected
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
     const parsed = LoginSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.errors[0]?.message || "Invalid credentials" },
+        { error: parsed.error.errors[0]?.message || "Invalid input format" },
         { status: 400 }
       );
     }
@@ -21,22 +65,36 @@ export async function POST(request: NextRequest) {
       where: { email: email.toLowerCase().trim() },
     });
 
-    if (!user) {
+    // 3. Timing-Safe Password Check
+    const hashToCompare = user ? user.passwordHash : DUMMY_HASH;
+    const isMatch = await comparePassword(password, hashToCompare);
+
+    if (!user || !isMatch) {
+      // Record failed attempt
+      const currentCount = (attemptRecord && attemptRecord.lockedUntil <= now)
+        ? 1
+        : (attemptRecord?.count || 0) + 1;
+
+      const lockedUntil = currentCount >= MAX_ATTEMPTS ? now + LOCKOUT_DURATION_MS : 0;
+      loginAttempts.set(clientIp, { count: currentCount, lockedUntil });
+
+      const remainingAttempts = Math.max(0, MAX_ATTEMPTS - currentCount);
+
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        {
+          error: currentCount >= MAX_ATTEMPTS
+            ? `Account locked due to 5 consecutive failed attempts. Please wait 15 minutes.`
+            : `Invalid email or security passkey. (${remainingAttempts} attempts remaining)`,
+          remainingAttempts,
+        },
         { status: 401 }
       );
     }
 
-    const isMatch = await comparePassword(password, user.passwordHash);
-    if (!isMatch) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
+    // Reset failed attempts on successful authentication
+    loginAttempts.delete(clientIp);
 
-    // Create JWT Token
+    // 4. Create JWT Token Session
     const token = await createSessionToken({
       userId: user.id,
       email: user.email,
@@ -44,6 +102,20 @@ export async function POST(request: NextRequest) {
     });
 
     await setSessionCookie(token);
+
+    // 5. Security audit logging
+    try {
+      await db.revision.create({
+        data: {
+          entityType: "AUTH",
+          entityId: user.id,
+          action: "LOGIN",
+          summary: `Admin authenticated successfully from IP: ${clientIp}`,
+        },
+      });
+    } catch {
+      // Ignore revision log errors
+    }
 
     return NextResponse.json({
       success: true,
@@ -57,7 +129,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Login API Error:", error);
     return NextResponse.json(
-      { error: "Authentication service error" },
+      { error: "Internal authentication subsystem failure" },
       { status: 500 }
     );
   }
