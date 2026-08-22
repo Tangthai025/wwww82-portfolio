@@ -39,7 +39,8 @@ export function TerminalHero() {
     },
   ]);
 
-  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const terminalBodyRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
 
   const handleCommand = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +95,13 @@ export function TerminalHero() {
   };
 
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (terminalBodyRef.current) {
+      terminalBodyRef.current.scrollTop = terminalBodyRef.current.scrollHeight;
+    }
   }, [history]);
 
   return (
@@ -157,7 +164,7 @@ export function TerminalHero() {
               </div>
 
               {/* Terminal Command Execution Window */}
-              <div className="p-4 font-mono text-xs sm:text-[13px] h-64 overflow-y-auto space-y-3 select-text">
+              <div ref={terminalBodyRef} className="p-4 font-mono text-xs sm:text-[13px] h-64 overflow-y-auto space-y-3 select-text">
                 {history.map((item, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex items-center gap-2 text-text font-medium">
@@ -181,7 +188,6 @@ export function TerminalHero() {
                     className="flex-1 bg-transparent text-text placeholder:text-muted/40 focus:outline-none font-mono text-xs sm:text-[13px]"
                   />
                 </form>
-                <div ref={terminalEndRef} />
               </div>
 
               {/* Terminal Status Bar */}
