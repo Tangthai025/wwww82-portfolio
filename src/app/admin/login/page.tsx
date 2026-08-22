@@ -178,7 +178,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLocked}
-                autoComplete="email"
+                autoComplete="off"
                 className="w-full pl-10 pr-3.5 py-2.5 bg-surface border border-border rounded-cyber text-sm font-mono text-text placeholder:text-muted/40 focus:outline-none focus:border-primary focus:shadow-cyber-sm transition-all disabled:opacity-50"
               />
             </div>
@@ -205,7 +205,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLocked}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 className="w-full pl-10 pr-10 py-2.5 bg-surface border border-border rounded-cyber text-sm font-mono text-text placeholder:text-muted/40 focus:outline-none focus:border-primary focus:shadow-cyber-sm transition-all disabled:opacity-50"
               />
               <button
