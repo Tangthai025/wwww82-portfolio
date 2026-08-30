@@ -44,7 +44,6 @@ export default async function HomePage() {
       take: 12,
     }),
     db.homepageSection.findMany({
-      where: { isEnabled: true },
       orderBy: { order: "asc" },
     }),
     db.profile.findFirst(),
@@ -59,9 +58,9 @@ export default async function HomePage() {
 
   // Check section visibility map
   const sectionEnabled = (key: string) => {
-    if (sections.length === 0) return true; // default all on
+    if (sections.length === 0) return true; // default all on if none configured
     const sec = sections.find((s) => s.sectionKey === key);
-    return sec ? sec.isEnabled : true;
+    return sec ? Boolean(sec.isEnabled) : true;
   };
 
   return (
