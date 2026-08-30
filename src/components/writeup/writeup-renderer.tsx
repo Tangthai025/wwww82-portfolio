@@ -81,6 +81,22 @@ export function WriteUpRenderer({
             data: { title: "Security Note", content: lines[i + 1]?.replace(/^>\s*/, "") || "" },
           });
           i++;
+        } else if (/^!\[(.*?)\]\((.*?)\)$/.test(line.trim())) {
+          if (currentParagraph) {
+            parsedBlocks.push({ type: "paragraph", data: { text: currentParagraph.trim() } });
+            currentParagraph = "";
+          }
+          const imgMatch = line.trim().match(/^!\[(.*?)\]\((.*?)\)$/);
+          if (imgMatch) {
+            parsedBlocks.push({
+              type: "image",
+              data: {
+                alt: imgMatch[1] || "Write-up Image",
+                url: imgMatch[2],
+                caption: imgMatch[1] || undefined,
+              },
+            });
+          }
         } else if (line.trim() === "") {
           if (currentParagraph) {
             parsedBlocks.push({ type: "paragraph", data: { text: currentParagraph.trim() } });
@@ -233,14 +249,23 @@ export function WriteUpRenderer({
           case "image": {
             return (
               <figure key={key} className="my-6 rounded-cyber overflow-hidden border border-border bg-surface">
-                <div className="relative w-full h-64 sm:h-96">
-                  <Image
-                    src={block.data?.url || "/placeholder.jpg"}
-                    alt={block.data?.alt || "Write-up Image"}
-                    fill
-                    unoptimized
-                    className="object-cover"
-                  />
+                <div className="relative w-full bg-surface-secondary/40 flex items-center justify-center p-1 sm:p-2">
+                  <a
+                    href={block.data?.url || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full cursor-zoom-in"
+                    title="คลิกเพื่อดูรูปภาพขนาดเต็ม"
+                  >
+                    <Image
+                      src={block.data?.url || "/placeholder.jpg"}
+                      alt={block.data?.alt || "Write-up Image"}
+                      width={1200}
+                      height={800}
+                      unoptimized
+                      className="w-full h-auto max-h-[80vh] object-contain rounded-cyber mx-auto transition-transform duration-200 hover:scale-[1.005]"
+                    />
+                  </a>
                 </div>
                 {block.data?.caption && (
                   <figcaption className="p-3 text-center text-xs font-mono text-muted border-t border-border bg-surface-secondary/50">

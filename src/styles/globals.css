@@ -176,3 +176,11 @@ pre[class*="language-"] {
 .token.variable {
   color: #FFA657;
 }
+
+/* Ensure all images inside articles/content display fully without clipping */
+article img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius);
+}

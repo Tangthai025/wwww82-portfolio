@@ -148,15 +148,24 @@ export default async function ProjectDetailPage({
 
         {/* Cover Image */}
         {project.coverImage && (
-          <div className="relative w-full h-64 sm:h-[420px] rounded-cyber overflow-hidden border border-border bg-surface-secondary">
-            <Image
-              src={project.coverImage}
-              alt={project.title}
-              fill
-              unoptimized
-              className="object-cover"
-              priority
-            />
+          <div className="group relative w-full rounded-cyber overflow-hidden border border-border bg-surface-secondary/40 flex items-center justify-center">
+            <a
+              href={project.coverImage}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full cursor-zoom-in"
+              title="คลิกเพื่อดูรูปภาพขนาดเต็ม"
+            >
+              <Image
+                src={project.coverImage}
+                alt={project.title}
+                width={1200}
+                height={800}
+                unoptimized
+                className="w-full h-auto max-h-[80vh] object-contain rounded-cyber mx-auto transition-transform duration-200 hover:scale-[1.005]"
+                priority
+              />
+            </a>
           </div>
         )}
 
