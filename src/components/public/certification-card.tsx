@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Award, ExternalLink, ShieldCheck, Eye } from "lucide-react";
-import { Dialog } from "@/components/ui/dialog";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 export interface CertificationCardProps {
   id: string;
@@ -95,28 +95,19 @@ export function CertificationCard({
         </div>
       </div>
 
-      {/* Certificate Image Lightbox Dialog */}
+      {/* Certificate Image Lightbox */}
       {certificateImage && (
-        <Dialog
+        <ImageLightbox
+          images={[
+            {
+              url: certificateImage,
+              alt: title,
+              caption: `${title} — Issued by ${issuer}${credentialId ? ` (ID: ${credentialId})` : ""}`,
+            },
+          ]}
           isOpen={isPreviewOpen}
           onClose={() => setIsPreviewOpen(false)}
-          title={`Certificate: ${title}`}
-          maxWidth="2xl"
-        >
-          <div className="relative w-full h-80 sm:h-[450px] bg-black rounded-cyber overflow-hidden">
-            <Image
-              src={certificateImage}
-              alt={title}
-              fill
-              unoptimized
-              className="object-contain"
-            />
-          </div>
-          <div className="mt-3 flex items-center justify-between text-xs font-mono text-muted">
-            <span>Issuer: {issuer}</span>
-            <span>ID: {credentialId || "N/A"}</span>
-          </div>
-        </Dialog>
+        />
       )}
     </>
   );

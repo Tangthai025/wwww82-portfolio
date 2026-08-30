@@ -7,9 +7,10 @@ import { TableOfContents, TocItem } from "@/components/writeup/table-of-contents
 interface WriteUpDetailClientProps {
   content: string;
   isMarkdown?: boolean;
+  coverImage?: string;
 }
 
-export function WriteUpDetailClient({ content, isMarkdown }: WriteUpDetailClientProps) {
+export function WriteUpDetailClient({ content, isMarkdown, coverImage }: WriteUpDetailClientProps) {
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
 
   return (
@@ -20,6 +21,7 @@ export function WriteUpDetailClient({ content, isMarkdown }: WriteUpDetailClient
         <WriteUpRenderer
           content={content}
           isMarkdown={isMarkdown}
+          coverImage={coverImage}
           onExtractToc={setTocItems}
         />
       </div>

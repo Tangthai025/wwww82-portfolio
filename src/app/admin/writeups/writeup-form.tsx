@@ -864,6 +864,7 @@ export function WriteUpForm({ initialData, isEditing = false }: WriteUpFormProps
           <WriteUpRenderer
             content={previewContentString}
             isMarkdown={editorMode === "markdown"}
+            coverImage={coverImage || undefined}
           />
         </div>
       </Dialog>

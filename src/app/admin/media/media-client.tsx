@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 interface MediaItem {
   id: string;
@@ -34,6 +35,7 @@ export function MediaClient({ initialMedia }: { initialMedia: MediaItem[] }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { success, error } = useToast();
@@ -273,14 +275,23 @@ export function MediaClient({ initialMedia }: { initialMedia: MediaItem[] }) {
         >
           <div className="space-y-4 font-mono text-xs">
             {selectedMedia.mimeType.startsWith("image/") ? (
-              <div className="relative w-full h-72 sm:h-96 bg-black rounded-cyber overflow-hidden">
+              <div
+                onClick={() => setIsLightboxOpen(true)}
+                className="group relative w-full h-72 sm:h-96 bg-black rounded-cyber overflow-hidden cursor-zoom-in border border-border/80 hover:border-primary/50 transition-colors"
+                title="คลิกเพื่อดูภาพขนาดเต็ม (Zoom / Pan)"
+              >
                 <Image
                   src={selectedMedia.url}
                   alt={selectedMedia.originalName}
                   fill
                   unoptimized
-                  className="object-contain"
+                  className="object-contain transition-transform duration-200 group-hover:scale-[1.02]"
                 />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <span className="px-3 py-1.5 bg-[#0a0e14]/90 border border-primary/60 text-primary text-xs rounded-cyber font-mono font-semibold shadow-lg">
+                    🔍 คลิกเพื่อซูมดูภาพขนาดเต็ม (Inspect / Pan)
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="p-12 text-center bg-surface-secondary rounded-cyber border border-border space-y-3">
@@ -334,6 +345,21 @@ export function MediaClient({ initialMedia }: { initialMedia: MediaItem[] }) {
             </div>
           </div>
         </Dialog>
+      )}
+
+      {/* Fullscreen Inspector Lightbox */}
+      {selectedMedia && selectedMedia.mimeType.startsWith("image/") && (
+        <ImageLightbox
+          images={[
+            {
+              url: selectedMedia.url,
+              alt: selectedMedia.originalName,
+              caption: `${selectedMedia.originalName} (${(selectedMedia.size / 1024).toFixed(1)} KB)`,
+            },
+          ]}
+          isOpen={isLightboxOpen}
+          onClose={() => setIsLightboxOpen(false)}
+        />
       )}
     </div>
   );

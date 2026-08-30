@@ -5,6 +5,7 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { WriteUpDetailClient } from "./writeup-detail-client";
 import { WriteUpCard } from "@/components/public/writeup-card";
+import { ExpandableImage } from "@/components/public/expandable-image";
 import { ArrowLeft, Clock, Calendar, Shield, Share2 } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -116,31 +117,18 @@ export default async function WriteUpDetailPage({
 
       {/* Cover Image if present */}
       {writeup.coverImage && (
-        <div className="group relative w-full rounded-cyber overflow-hidden border border-border bg-surface-secondary/40 flex items-center justify-center">
-          <a
-            href={writeup.coverImage}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full cursor-zoom-in"
-            title="คลิกเพื่อดูรูปภาพขนาดเต็ม"
-          >
-            <Image
-              src={writeup.coverImage}
-              alt={writeup.title}
-              width={1200}
-              height={800}
-              unoptimized
-              className="w-full h-auto max-h-[80vh] object-contain rounded-cyber mx-auto transition-transform duration-200 hover:scale-[1.005]"
-              priority
-            />
-          </a>
-        </div>
+        <ExpandableImage
+          src={writeup.coverImage}
+          alt={writeup.title}
+          priority
+        />
       )}
 
       {/* Structured Content & Sticky TOC */}
       <WriteUpDetailClient
         content={writeup.content}
         isMarkdown={writeup.isMarkdown}
+        coverImage={writeup.coverImage || undefined}
       />
 
       {/* Related Write-ups Footer */}

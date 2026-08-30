@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import { CodeBlock } from "./code-block";
 import { TerminalBlock } from "./terminal-block";
@@ -8,6 +8,8 @@ import { SecurityWarningBlock } from "./security-warning-block";
 import { FindingBlock } from "./finding-block";
 import { sanitizeContent } from "@/lib/sanitize";
 import { TocItem } from "./table-of-contents";
+import { ImageLightbox, LightboxImage } from "@/components/ui/image-lightbox";
+import { ZoomIn, Maximize2 } from "lucide-react";
 
 export interface BlockData {
   type: string;
@@ -17,6 +19,7 @@ export interface BlockData {
 interface WriteUpRendererProps {
   content: string; // JSON Array string or Markdown
   isMarkdown?: boolean;
+  coverImage?: string;
   onExtractToc?: (items: TocItem[]) => void;
 }
 
@@ -31,6 +34,7 @@ export function slugifyText(text: string): string {
 export function WriteUpRenderer({
   content,
   isMarkdown = false,
+  coverImage,
   onExtractToc,
 }: WriteUpRendererProps) {
   // Parse blocks
@@ -81,19 +85,19 @@ export function WriteUpRenderer({
             data: { title: "Security Note", content: lines[i + 1]?.replace(/^>\s*/, "") || "" },
           });
           i++;
-        } else if (/^!\[(.*?)\]\((.*?)\)$/.test(line.trim())) {
+        } else if (/^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)$/.test(line.trim())) {
           if (currentParagraph) {
             parsedBlocks.push({ type: "paragraph", data: { text: currentParagraph.trim() } });
             currentParagraph = "";
           }
-          const imgMatch = line.trim().match(/^!\[(.*?)\]\((.*?)\)$/);
+          const imgMatch = line.trim().match(/^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)$/);
           if (imgMatch) {
             parsedBlocks.push({
               type: "image",
               data: {
                 alt: imgMatch[1] || "Write-up Image",
-                url: imgMatch[2],
-                caption: imgMatch[1] || undefined,
+                url: imgMatch[2].trim(),
+                caption: imgMatch[3] || imgMatch[1] || undefined,
               },
             });
           }
@@ -122,6 +126,27 @@ export function WriteUpRenderer({
     }
   }, [content, isMarkdown]);
 
+  // Collect all images in document for lightbox gallery navigation
+  const allImages: LightboxImage[] = useMemo(() => {
+    const list: LightboxImage[] = [];
+    if (coverImage) {
+      list.push({ url: coverImage, alt: "Cover Image", caption: "Cover Image" });
+    }
+    blocks.forEach((block) => {
+      if (block.type === "image" && block.data?.url) {
+        list.push({
+          url: block.data.url,
+          alt: block.data.alt || "Write-up Image",
+          caption: block.data.caption || block.data.alt,
+        });
+      }
+    });
+    return list;
+  }, [blocks, coverImage]);
+
+  const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
+  const [customSingleImage, setCustomSingleImage] = useState<LightboxImage | null>(null);
+
   // Extract TOC items
   React.useEffect(() => {
     if (!onExtractToc) return;
@@ -137,8 +162,29 @@ export function WriteUpRenderer({
     onExtractToc(toc);
   }, [blocks, onExtractToc]);
 
+  // Support clicking any inline <img> tags rendered in HTML paragraphs
+  const handleArticleClick = (e: React.MouseEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "IMG" && !target.closest("button") && !target.closest("[role='button']")) {
+      const src = target.getAttribute("src");
+      const alt = target.getAttribute("alt") || "";
+      if (src) {
+        const idx = allImages.findIndex((img) => img.url === src);
+        if (idx >= 0) {
+          setActiveLightboxIndex(idx);
+        } else {
+          setCustomSingleImage({ url: src, alt });
+        }
+      }
+    }
+  };
+
   return (
-    <article className="space-y-6 text-text text-sm sm:text-base leading-relaxed">
+    <>
+      <article
+        onClick={handleArticleClick}
+        className="space-y-6 text-text text-sm sm:text-base leading-relaxed"
+      >
       {blocks.map((block, index) => {
         const key = `block-${index}`;
 
@@ -247,29 +293,56 @@ export function WriteUpRenderer({
           }
 
           case "image": {
+            const imageUrl = block.data?.url || "/placeholder.jpg";
+            const imageAlt = block.data?.alt || "Write-up Image";
+            const imageCaption = block.data?.caption;
+
             return (
               <figure key={key} className="my-6 rounded-cyber overflow-hidden border border-border bg-surface">
-                <div className="relative w-full bg-surface-secondary/40 flex items-center justify-center p-1 sm:p-2">
-                  <a
-                    href={block.data?.url || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full cursor-zoom-in"
-                    title="คลิกเพื่อดูรูปภาพขนาดเต็ม"
-                  >
-                    <Image
-                      src={block.data?.url || "/placeholder.jpg"}
-                      alt={block.data?.alt || "Write-up Image"}
-                      width={1200}
-                      height={800}
-                      unoptimized
-                      className="w-full h-auto max-h-[80vh] object-contain rounded-cyber mx-auto transition-transform duration-200 hover:scale-[1.005]"
-                    />
-                  </a>
+                <div
+                  onClick={() => {
+                    const idx = allImages.findIndex((img) => img.url === imageUrl);
+                    setActiveLightboxIndex(idx >= 0 ? idx : 0);
+                  }}
+                  className="group relative w-full bg-surface-secondary/40 flex items-center justify-center p-1 sm:p-2 cursor-zoom-in transition-all duration-300 hover:border-primary/50"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      const idx = allImages.findIndex((img) => img.url === imageUrl);
+                      setActiveLightboxIndex(idx >= 0 ? idx : 0);
+                    }
+                  }}
+                  title="คลิกเพื่อดูรูปภาพขนาดเต็มและซูมรายละเอียด"
+                >
+                  <Image
+                    src={imageUrl}
+                    alt={imageAlt}
+                    width={1200}
+                    height={800}
+                    unoptimized
+                    className="w-full h-auto max-h-[80vh] object-contain rounded-cyber mx-auto transition-transform duration-300 group-hover:scale-[1.01]"
+                  />
+
+                  {/* Cyber Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-cyber bg-[#0a0e14]/90 border border-primary/60 text-primary shadow-xl backdrop-blur transform translate-y-2 group-hover:translate-y-0 transition-transform duration-200 text-xs font-mono font-semibold">
+                      <ZoomIn className="w-4 h-4 text-primary animate-pulse" />
+                      <span>คลิกเพื่อดูภาพขนาดเต็ม (Zoom / Pan)</span>
+                      <Maximize2 className="w-3.5 h-3.5 opacity-70 ml-1" />
+                    </div>
+                  </div>
+
+                  {/* Small corner zoom indicator for mobile */}
+                  <div className="absolute bottom-2.5 right-2.5 px-2 py-1 rounded bg-[#0a0e14]/80 border border-border text-[10px] font-mono text-muted flex items-center gap-1 opacity-70 group-hover:opacity-0 transition-opacity">
+                    <Maximize2 className="w-3 h-3 text-primary" />
+                    <span>Zoom</span>
+                  </div>
                 </div>
-                {block.data?.caption && (
+                {imageCaption && (
                   <figcaption className="p-3 text-center text-xs font-mono text-muted border-t border-border bg-surface-secondary/50">
-                    {block.data.caption}
+                    {imageCaption}
                   </figcaption>
                 )}
               </figure>
@@ -333,6 +406,26 @@ export function WriteUpRenderer({
             return null;
         }
       })}
-    </article>
+      </article>
+
+      {/* Fullscreen Cyber Lightbox Modals */}
+      {activeLightboxIndex !== null && allImages.length > 0 && (
+        <ImageLightbox
+          images={allImages}
+          initialIndex={activeLightboxIndex}
+          isOpen={activeLightboxIndex !== null}
+          onClose={() => setActiveLightboxIndex(null)}
+        />
+      )}
+
+      {customSingleImage && (
+        <ImageLightbox
+          images={[customSingleImage]}
+          initialIndex={0}
+          isOpen={!!customSingleImage}
+          onClose={() => setCustomSingleImage(null)}
+        />
+      )}
+    </>
   );
 }

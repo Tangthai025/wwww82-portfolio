@@ -5,6 +5,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { FindingBlock } from "@/components/writeup/finding-block";
 import { SeverityType } from "@/components/ui/badge";
+import { ExpandableImage } from "@/components/public/expandable-image";
 import {
   ArrowLeft,
   Calendar,
@@ -148,25 +149,11 @@ export default async function ProjectDetailPage({
 
         {/* Cover Image */}
         {project.coverImage && (
-          <div className="group relative w-full rounded-cyber overflow-hidden border border-border bg-surface-secondary/40 flex items-center justify-center">
-            <a
-              href={project.coverImage}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full cursor-zoom-in"
-              title="คลิกเพื่อดูรูปภาพขนาดเต็ม"
-            >
-              <Image
-                src={project.coverImage}
-                alt={project.title}
-                width={1200}
-                height={800}
-                unoptimized
-                className="w-full h-auto max-h-[80vh] object-contain rounded-cyber mx-auto transition-transform duration-200 hover:scale-[1.005]"
-                priority
-              />
-            </a>
-          </div>
+          <ExpandableImage
+            src={project.coverImage}
+            alt={project.title}
+            priority
+          />
         )}
 
         {/* Tools & Technologies Pills */}
