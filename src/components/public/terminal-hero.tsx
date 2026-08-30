@@ -10,21 +10,65 @@ interface CommandHistoryItem {
   output: string | React.ReactNode;
 }
 
-export function TerminalHero() {
-  const [input, setInput] = useState("");
-  const [history, setHistory] = useState<CommandHistoryItem[]>([
+export interface HeroConfig {
+  terminalUser?: string;
+  whoami?: string;
+  focus?: string[];
+  status?: string;
+  badgeText?: string;
+  heading?: string;
+  bio?: string;
+  primaryBtnText?: string;
+  primaryBtnLink?: string;
+  secondaryBtnText?: string;
+  secondaryBtnLink?: string;
+}
+
+interface TerminalHeroProps {
+  config?: HeroConfig;
+  profile?: {
+    name?: string | null;
+    title?: string | null;
+    bio?: string | null;
+  } | null;
+}
+
+export function TerminalHero({ config, profile }: TerminalHeroProps = {}) {
+  const terminalUser = config?.terminalUser || "wwww82@sec";
+  const whoamiText =
+    config?.whoami ||
+    (profile?.name && profile?.title
+      ? `${profile.name} — ${profile.title}`
+      : "wwww82 — Cybersecurity Researcher & Penetration Tester");
+  const focusItems =
+    Array.isArray(config?.focus) && config.focus.length > 0
+      ? config.focus
+      : ["web-security", "security-research", "penetration-testing", "ctf"];
+  const statusText = config?.status || "systems operational";
+
+  const badgeText = config?.badgeText || profile?.title?.toUpperCase() || "SECURITY RESEARCHER";
+  const heading = config?.heading || profile?.name || "wwww82";
+  const bio =
+    config?.bio ||
+    profile?.bio ||
+    "Cybersecurity enthusiast focused on security research, web security, penetration testing, and technical exploration.";
+  const primaryBtnText = config?.primaryBtnText || "View Projects";
+  const primaryBtnLink = config?.primaryBtnLink || "/projects";
+  const secondaryBtnText = config?.secondaryBtnText || "Read Write-ups";
+  const secondaryBtnLink = config?.secondaryBtnLink || "/writeups";
+
+  const buildInitialHistory = (): CommandHistoryItem[] => [
     {
       command: "whoami",
-      output: "wwww82 — Cybersecurity Researcher & Penetration Tester",
+      output: whoamiText,
     },
     {
       command: "focus",
       output: (
         <div className="space-y-0.5 text-secondary">
-          <div>→ web-security</div>
-          <div>→ security-research</div>
-          <div>→ penetration-testing</div>
-          <div>→ ctf</div>
+          {focusItems.map((item, idx) => (
+            <div key={idx}>→ {item}</div>
+          ))}
         </div>
       ),
     },
@@ -33,11 +77,19 @@ export function TerminalHero() {
       output: (
         <span className="text-primary font-bold flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-primary inline-block animate-pulse"></span>
-          ● systems operational
+          ● {statusText}
         </span>
       ),
     },
-  ]);
+  ];
+
+  const [input, setInput] = useState("");
+  const [history, setHistory] = useState<CommandHistoryItem[]>(buildInitialHistory);
+
+  // Re-sync initial history when config changes
+  useEffect(() => {
+    setHistory(buildInitialHistory());
+  }, [whoamiText, JSON.stringify(focusItems), statusText]);
 
   const terminalBodyRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
@@ -54,13 +106,13 @@ export function TerminalHero() {
         response = "Available commands: whoami, focus, status, skills, certs, projects, writeups, clear, date, flag";
         break;
       case "whoami":
-        response = "wwww82 — Cybersecurity Researcher & Penetration Tester";
+        response = whoamiText;
         break;
       case "focus":
-        response = "web-security · security-research · penetration-testing · ctf · cloud-security";
+        response = focusItems.join(" · ");
         break;
       case "status":
-        response = "● systems operational — all telemetry nominal";
+        response = `● ${statusText} — all telemetry nominal`;
         break;
       case "skills":
         response = "Web Security, Kernel Fuzzing, eBPF, Burp Suite, Python, Go, Rust, C/C++, AWS IAM, Docker";
@@ -69,10 +121,10 @@ export function TerminalHero() {
         response = "OSCP, CRTE, eWPTXv2, CISSP, AWS Security Specialty, BSCP";
         break;
       case "projects":
-        response = "Navigate to /projects to view all security tools and case studies";
+        response = `Navigate to ${primaryBtnLink} to view all security tools and case studies`;
         break;
       case "writeups":
-        response = "Navigate to /writeups to explore vulnerability research and CTF walkthroughs";
+        response = `Navigate to ${secondaryBtnLink} to explore vulnerability research and CTF walkthroughs`;
         break;
       case "clear":
         setHistory([]);
@@ -116,30 +168,30 @@ export function TerminalHero() {
           <div className="lg:col-span-7 space-y-6 text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-border text-primary text-xs font-mono tracking-wider">
               <Shield className="w-3.5 h-3.5" />
-              <span>SECURITY RESEARCHER</span>
+              <span>{badgeText}</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-text font-mono">
-              wwww82
+              {heading}
             </h1>
 
             <p className="text-base sm:text-lg text-muted max-w-2xl leading-relaxed font-sans">
-              Cybersecurity enthusiast focused on <span className="text-text font-medium">security research</span>, <span className="text-text font-medium">web security</span>, <span className="text-text font-medium">penetration testing</span>, and technical exploration.
+              {bio}
             </p>
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link href="/projects">
+              <Link href={primaryBtnLink}>
                 <Button variant="primary" size="lg" className="group">
                   <FolderGit2 className="w-4 h-4 mr-2" />
-                  View Projects
+                  {primaryBtnText}
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link href="/writeups">
+              <Link href={secondaryBtnLink}>
                 <Button variant="outline" size="lg" className="group font-mono">
                   <BookOpen className="w-4 h-4 mr-2 text-secondary" />
-                  Read Write-ups
+                  {secondaryBtnText}
                 </Button>
               </Link>
             </div>
@@ -156,7 +208,7 @@ export function TerminalHero() {
                     <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/70 inline-block"></span>
                     <span className="w-2.5 h-2.5 rounded-full bg-green-500/70 inline-block"></span>
                   </div>
-                  <span className="text-text/90 font-medium ml-2">terminal — wwww82@sec</span>
+                  <span className="text-text/90 font-medium ml-2">terminal — {terminalUser}</span>
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-primary/70">
                   <TerminalIcon className="w-3.5 h-3.5" />

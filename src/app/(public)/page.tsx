@@ -63,10 +63,21 @@ export default async function HomePage() {
     return sec ? Boolean(sec.isEnabled) : true;
   };
 
+  // Extract hero configuration if present
+  const heroSection = sections.find((s) => s.sectionKey === "hero");
+  let heroConfig: any = {};
+  if (heroSection?.configJson) {
+    try {
+      heroConfig = JSON.parse(heroSection.configJson);
+    } catch {}
+  }
+
   return (
     <div className="space-y-16 sm:space-y-24">
       {/* 1. Hero Section */}
-      {sectionEnabled("hero") && <TerminalHero />}
+      {sectionEnabled("hero") && (
+        <TerminalHero config={heroConfig} profile={profile} />
+      )}
 
       {/* 2. Stats Section */}
       {sectionEnabled("stats") && (
