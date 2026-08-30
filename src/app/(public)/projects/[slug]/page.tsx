@@ -153,6 +153,7 @@ export default async function ProjectDetailPage({
               src={project.coverImage}
               alt={project.title}
               fill
+              unoptimized
               className="object-cover"
               priority
             />

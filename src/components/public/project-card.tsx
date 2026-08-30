@@ -33,6 +33,7 @@ export function ProjectCard({
               src={coverImage}
               alt={title}
               fill
+              unoptimized
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (

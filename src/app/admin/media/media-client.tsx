@@ -226,6 +226,7 @@ export function MediaClient({ initialMedia }: { initialMedia: MediaItem[] }) {
                       src={item.url}
                       alt={item.originalName}
                       fill
+                      unoptimized
                       className="object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
@@ -277,6 +278,7 @@ export function MediaClient({ initialMedia }: { initialMedia: MediaItem[] }) {
                   src={selectedMedia.url}
                   alt={selectedMedia.originalName}
                   fill
+                  unoptimized
                   className="object-contain"
                 />
               </div>

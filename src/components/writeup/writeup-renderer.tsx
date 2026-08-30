@@ -238,6 +238,7 @@ export function WriteUpRenderer({
                     src={block.data?.url || "/placeholder.jpg"}
                     alt={block.data?.alt || "Write-up Image"}
                     fill
+                    unoptimized
                     className="object-cover"
                   />
                 </div>

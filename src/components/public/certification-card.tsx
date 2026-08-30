@@ -108,6 +108,7 @@ export function CertificationCard({
               src={certificateImage}
               alt={title}
               fill
+              unoptimized
               className="object-contain"
             />
           </div>

@@ -121,6 +121,7 @@ export default async function WriteUpDetailPage({
             src={writeup.coverImage}
             alt={writeup.title}
             fill
+            unoptimized
             className="object-cover"
             priority
           />
